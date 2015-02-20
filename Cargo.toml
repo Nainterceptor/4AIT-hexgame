@@ -3,3 +3,7 @@
 name = "hexGame"
 version = "0.0.1"
 authors = ["Gaël Demette <demette.gael@gmail.com>"]
+
+[[bin]]
+
+name = "hexGame"
