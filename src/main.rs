@@ -46,10 +46,10 @@ fn edit_grid(grid: &mut Vec<Vec<u8>>, new_value: u8, x: u8, y: u8) {
 fn print_grid(grid: &Vec<Vec<u8>>) {
 	for x in grid.iter() {
 		for y in x.iter() {
-			print!(" {}", match y {
-				&0u8 => "-",
-				&1u8 => "B",
-				&2u8 => "W",
+			print!(" {}", match *y {
+				0u8 => "-",
+				1u8 => "B",
+				2u8 => "W",
 				_ => "E"
 			});
 		}
