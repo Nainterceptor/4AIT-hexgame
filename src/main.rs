@@ -19,17 +19,19 @@ fn main() {
 	let mut grid: Vec<Vec<u8>> = generate_grid(grid_size);
 
 	//Print the grid
-	print_grid(grid);
+	print_grid(&grid);
+	edit_grid(&mut grid, 1, 0, 0);
+	print_grid(&grid);
 
 }
 
 
 //For performances considerations, sides can't be > to 255.
 fn generate_grid(side_length: u8) -> Vec<Vec<u8>> {
-	let mut vector: Vec<Vec<u8>> = Vec::new();
-	for i in 0..side_length {
-		let mut vector_internal: Vec<u8> = Vec::new();
-		for j in 0..side_length {
+	let mut vector: Vec<Vec<u8>> = Vec::with_capacity(side_length as usize);
+	for _ in 0..side_length {
+		let mut vector_internal: Vec<u8> = Vec::with_capacity(side_length as usize);
+		for _ in 0..side_length {
 			vector_internal.push(0);
 		}
 		vector.push(vector_internal);
@@ -37,8 +39,11 @@ fn generate_grid(side_length: u8) -> Vec<Vec<u8>> {
 	return vector;
 }
 
+fn edit_grid(grid: &mut Vec<Vec<u8>>, new_value: u8, x: u8, y: u8) {
+	grid[x as usize][y as usize] = new_value;
+}
 
-fn print_grid(grid: Vec<Vec<u8>>) {
+fn print_grid(grid: &Vec<Vec<u8>>) {
 	for x in grid.iter() {
 		for y in x.iter() {
 			print!(" {}", match y {
