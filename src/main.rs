@@ -3,6 +3,17 @@ use std::old_io;
 //static ITERATIONS: u16 = 5000;
 static DEFAULT_GRID: u8 = 10;
 
+enum PlayerType {
+	AI,
+	Human
+}
+
+struct Player {
+	name: String,
+	num: u8,
+	player_type: PlayerType
+}
+
 fn main() {
 	let mut stdin = old_io::stdin();
 	//Choose the grid size
@@ -18,47 +29,72 @@ fn main() {
 	let mut grid: Vec<Vec<u8>> = generate_grid(grid_size);
 	println!("Your grid have now a size of {size}", size = grid_size);
 
+	let players: [Player; 2] = [get_a_player(&mut stdin, 1), get_a_player(&mut stdin, 2)];
 	//game loop
 	let mut turn : u32 = 0;
 
 	loop {
 		print_grid(&grid);
 		if has_winner_path(&grid, 1) {
-			println!("Congratulations, Player 1, you've won.");
+			println!("Congratulations, {}, you've won.", players[0].name);
 			break;
 		} else if has_winner_path(&grid, 2) {
-			println!("Congratulations, Player 2, you've won.");
+			println!("Congratulations, {}, you've won.", players[1].name);
 			break;
 		}
-		let player : u8 = (turn % 2) as u8 + 1;
-		println!("It's your turn (turn {turn}), player {player}", turn = turn + 1, player = player);
-		let position_x: u8;
-		loop {
-			println!("Give us X position");
-			let grid_input = stdin.lock().lines().next().unwrap().ok().unwrap();
-			match grid_input.trim().parse::<u8>() {
-					Ok(x) if x < grid_size => { position_x = x; break; },
-					Ok(_) => {continue;},
-					Err(_) => {continue;}
-				};
+		let player : &Player = &players[(turn % 2)  as usize];
+		let player_status = match player.player_type {
+			PlayerType::AI => "AI",
+			PlayerType::Human => "Human"
 		};
-		let position_y: u8;
-		loop {
-			println!("Give us Y position");
-			let grid_input = stdin.lock().lines().next().unwrap().ok().unwrap();
-			match grid_input.trim().parse::<u8>() {
-					Ok(y) if y < grid_size => { position_y = y; break; },
-					Ok(_) => {continue;},
-					Err(_) => {continue;}
-				};
+		println!("It's your turn (turn {turn}), {player} ({status})", turn = turn + 1, player = player.name, status = player_status);
+		match player.player_type {
+			PlayerType::AI => {
+//				let position: [u8; 2] =
+			},
+			PlayerType::Human => {
+				let position_x: u8 = get_a_position(&mut stdin, grid_size, "X".to_string());
+				let position_y: u8 = get_a_position(&mut stdin, grid_size, "Y".to_string());
+				if is_free_cell(&grid, position_x, position_y) {
+					edit_grid(&mut grid, player.num, position_x, position_y);
+					turn = turn + 1;
+				} else {
+					println!("This cell is not free");
+				}
+			}
 		};
-		if is_free_cell(&grid, position_x, position_y) {
-			edit_grid(&mut grid, player, position_x, position_y);
-			turn = turn + 1;
-		} else {
-			println!("This cell is not free");
-		}
 	}
+}
+
+fn get_a_player(stdin: &mut std::old_io::stdio::StdinReader, player_num: u8) -> Player {
+	println!("Please, give us a name for player {}", player_num);
+	let grid_input = stdin.lock().lines().next().unwrap().ok().unwrap();
+	let name = grid_input.trim();
+	let player_type: PlayerType;
+	loop {
+		println!("{} will be human ? (yes/no)", name);
+		let grid_input = stdin.lock().lines().next().unwrap().ok().unwrap();
+		match grid_input.trim() {
+				"yes" => { player_type = PlayerType::Human; break; },
+				"no" => { player_type = PlayerType::AI; break;},
+				_ => {continue;}
+			};
+	};
+	return Player { num: player_num, name: name.to_string(), player_type: player_type};
+}
+
+fn get_a_position(stdin: &mut std::old_io::stdio::StdinReader, max_value_plus_one: u8, axe: String) -> u8 {
+	let position: u8;
+	loop {
+		println!("Give us {} position", axe);
+		let grid_input = stdin.lock().lines().next().unwrap().ok().unwrap();
+		match grid_input.trim().parse::<u8>() {
+			Ok(x) if x < max_value_plus_one => { position = x; break; },
+			Ok(_) => {continue;},
+			Err(_) => {continue;}
+		};
+	};
+	return position;
 }
 
 //For performances considerations, sides can't be > to 255.
