@@ -32,9 +32,8 @@ fn main() {
 	let players: [Player; 2] = [get_a_player(&mut stdin, 1), get_a_player(&mut stdin, 2)];
 	//game loop
 	let mut turn : u32 = 0;
-
+	print_grid(&grid);
 	loop {
-		print_grid(&grid);
 		if has_winner_path(&grid, 1) {
 			println!("Congratulations, {}, you've won.", players[0].name);
 			break;
@@ -47,7 +46,17 @@ fn main() {
 			PlayerType::AI => "AI",
 			PlayerType::Human => "Human"
 		};
-		println!("It's your turn (turn {turn}), {player} ({status})", turn = turn + 1, player = player.name, status = player_status);
+		println!(
+			"It's your turn (turn {turn}), {player} ({icon} - {status})",
+			turn = turn + 1,
+			player = player.name,
+			status = player_status,
+			icon = match player.num {
+				1u8 => "B, vertically",
+				2u8 => "W, horizontally",
+				_ => "Error"
+			}
+		);
 		match player.player_type {
 			PlayerType::AI => {
 				let shuffled_grid: Vec<[u8; 2]> = get_shuffled_free_cells(&grid);
@@ -73,6 +82,7 @@ fn main() {
 			}
 		};
 		turn = turn + 1;
+		print_grid(&grid);
 	}
 }
 
@@ -197,7 +207,9 @@ fn edit_grid(grid: &mut Vec<Vec<u8>>, new_value: u8, x: u8, y: u8) {
 }
 
 fn print_grid(grid: &Vec<Vec<u8>>) {
+	let mut spaces_before = "".to_string();
 	for x in grid.iter() {
+		print!("{}", spaces_before);
 		for y in x.iter() {
 			print!(" {} ", match *y {
 				0u8 => "-",
@@ -207,6 +219,7 @@ fn print_grid(grid: &Vec<Vec<u8>>) {
 			});
 		}
 		print!("\n");
+		spaces_before = spaces_before + "  ";
 	}
 }
 
