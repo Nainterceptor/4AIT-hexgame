@@ -50,20 +50,102 @@ fn main() {
 		println!("It's your turn (turn {turn}), {player} ({status})", turn = turn + 1, player = player.name, status = player_status);
 		match player.player_type {
 			PlayerType::AI => {
-//				let position: [u8; 2] =
+				let shuffled_grid: Vec<[u8; 2]> = get_shuffled_free_cells(&grid);
+				let mut better_position: [u8; 2] = shuffled_grid[0];
+				let mut better_weight = 255;
+				for try_position in shuffled_grid.iter() {
+					let current_weight = get_lower_weight_for_simulation(&grid, player.num, try_position);
+					if better_weight < current_weight {
+						better_position = *try_position;
+						better_weight = current_weight;
+					}
+				}
+				edit_grid(&mut grid, player.num, better_position[0], better_position[1]);
 			},
 			PlayerType::Human => {
 				let position_x: u8 = get_a_position(&mut stdin, grid_size, "X".to_string());
 				let position_y: u8 = get_a_position(&mut stdin, grid_size, "Y".to_string());
 				if is_free_cell(&grid, position_x, position_y) {
 					edit_grid(&mut grid, player.num, position_x, position_y);
-					turn = turn + 1;
 				} else {
 					println!("This cell is not free");
 				}
 			}
 		};
+		turn = turn + 1;
 	}
+}
+
+fn get_lower_weight_for_simulation(grid: &Vec<Vec<u8>>, player: u8, position: &[u8; 2]) -> u8 {
+	let mut grid_simulated: Vec<Vec<u8>> = grid.clone();
+	edit_grid(&mut grid_simulated, player, position[0], position[1]);
+	let mut weight: u8 = 255;
+	for i in 0u8..grid.len() as u8 {
+		let vector: Vec<[u8; 2]> = Vec::new();
+		let (current_weight, has_reach_the_goal) = match player {
+			1u8 => get_faster_to_goal(&grid_simulated, player, 0, i, &vector),
+			2u8 => get_faster_to_goal(&grid_simulated, player, i, 0, &vector),
+			_ => { panic!("Incorrect player for get_lower_weight"); }
+		};
+		if current_weight < weight && has_reach_the_goal {
+			weight = current_weight;
+		}
+	}
+	return weight;
+}
+
+fn get_faster_to_goal(grid: &Vec<Vec<u8>>, player: u8, x: u8, y: u8, to_ignore: &Vec<[u8; 2]>) -> (u8, bool) {
+	let mut path_weight: u8 = get_weight(&grid, player, x, y);
+
+	if (is_a_goal(&grid, player, x, y)) {
+		return (path_weight, true);
+	}
+
+	let mut to_ignore_cell = to_ignore.clone();
+	to_ignore_cell.push([x, y]);
+
+	let available_cells_close = not_visited_cells_close(&grid, player, x, y, &to_ignore_cell, false);
+
+	let mut goal_reached: bool = false;
+	if available_cells_close.len() != 0 {
+		let mut shorter_path = 255;
+		for cell in available_cells_close.iter() {
+			let (faster_to_goal, reach_goal) = get_faster_to_goal(&grid, player, cell[0], cell[1], &to_ignore_cell);
+			if (!reach_goal) {
+				continue;
+			}
+			goal_reached = true;
+			if faster_to_goal < shorter_path {
+				shorter_path = faster_to_goal;
+			}
+		}
+		path_weight = path_weight + shorter_path;
+	}
+//	println!("{:?}", available_cells_close);
+	return (path_weight, goal_reached);
+}
+
+fn get_shuffled_free_cells(grid: &Vec<Vec<u8>>) -> Vec<[u8; 2]> {
+	use std::rand::{thread_rng, Rng};
+
+	let mut free_cells: Vec<[u8; 2]> = Vec::new();
+	for x in 0..grid.len() {
+		for y in 0..grid[0].len() {
+			if is_free_cell(&grid, x as u8, y as u8) {
+				free_cells.push([x as u8, y as u8]);
+			}
+		}
+	}
+	let sliced_free_cells: &mut [[u8; 2]] = free_cells.as_mut_slice();
+	thread_rng().shuffle(sliced_free_cells);
+
+	let mut sliced_shuffled_free_cells: Vec<[u8; 2]> = Vec::new();
+	sliced_shuffled_free_cells.push_all(&sliced_free_cells);
+	return sliced_shuffled_free_cells;
+}
+
+fn get_weight(grid: &Vec<Vec<u8>>, player: u8, x: u8, y: u8) -> u8 {
+	if grid[x as usize][y as usize] == player { 0 } else { 1 }
 }
 
 fn get_a_player(stdin: &mut std::old_io::stdio::StdinReader, player_num: u8) -> Player {
