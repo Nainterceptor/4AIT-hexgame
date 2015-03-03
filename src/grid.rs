@@ -220,7 +220,7 @@ impl Grid {
 
 	fn get_faster_to_goal(&self, player: &Player, coord: [u8; 2], to_ignore: &Vec<[u8; 2]>) -> (u8, bool) {
 		let mut path_weight: u8 = self.get_weight(player, coord);
-	//
+
 		if self.is_a_goal(coord, player) {
 			return (path_weight, true);
 		}
