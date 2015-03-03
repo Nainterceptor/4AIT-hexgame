@@ -120,7 +120,7 @@ impl Grid {
 		return &mut self.vector[cell[0] as usize][cell[1] as usize];
 	}
 
-	fn cells_close(&self, cell: [u8; 2]) -> Vec<[u8; 2]> {
+	pub fn cells_close(&self, cell: [u8; 2]) -> Vec<[u8; 2]> {
 		let mut cells_values: Vec<[u8; 2]> = Vec::with_capacity(8);
 		let relative_positions: [[i8; 2]; 8] = [
 			[-1, -1],	[-1, 0],	[-1, 1],
