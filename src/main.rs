@@ -1,4 +1,6 @@
 #![feature(old_io)]
+#![feature(collections)]
+#![feature(rand)]
 
 mod grid;
 mod cell;

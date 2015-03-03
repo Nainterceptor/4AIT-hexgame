@@ -32,13 +32,13 @@ impl Game {
 					let mut better_position: [u8; 2] = shuffled_grid[0];
 					let mut better_weight = 255;
 					for try_position in shuffled_grid.iter() {
-						self.grid.edit(&self.players[(self.turn % 2)  as usize], better_position);
-						let current_weight = self.grid.get_lower_weight(&self.players[(self.turn % 2)  as usize], try_position);
+						self.grid.edit(&self.players[(self.turn % 2)  as usize], *try_position);
+						let current_weight = self.grid.get_lower_weight(&self.players[(self.turn % 2)  as usize]);
 						if better_weight < current_weight {
 							better_position = *try_position;
 							better_weight = current_weight;
 						}
-						self.grid.reset(better_position);
+						self.grid.reset(*try_position);
 					}
 					self.grid.edit(&self.players[(self.turn % 2)  as usize], better_position);
 				},

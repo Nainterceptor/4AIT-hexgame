@@ -15,10 +15,10 @@ impl Grid {
 	//For performances considerations, sides can't be > to 255, like u8
 	pub fn new(side_length: u8) -> Grid {
 		let mut vector: Vec<Vec<Cell>> = Vec::with_capacity(side_length as usize);
-		for x in 0..side_length {
+		for _ in 0..side_length {
 			let mut vector_internal: Vec<Cell> = Vec::with_capacity(side_length as usize);
-			for y in 0..side_length {
-				vector_internal.push(Cell::new(x as u8, y as u8));
+			for _ in 0..side_length {
+				vector_internal.push(Cell::new());
 			}
 			vector.push(vector_internal);
 		}
@@ -182,7 +182,6 @@ impl Grid {
 		let cell: &mut Cell = self.get_mut_cell(coord);
 		cell.status = CellStatus::Empty;
 	}
-
 	pub fn get_shuffled_free_cells(&self) -> Vec<[u8; 2]> {
 		use std::rand::{thread_rng, Rng};
 
@@ -203,7 +202,7 @@ impl Grid {
 		return sliced_shuffled_free_cells;
 	}
 
-	pub fn get_lower_weight(&self, player: &Player, position: &[u8; 2]) -> u8 {
+	pub fn get_lower_weight(&self, player: &Player) -> u8 {
 		let mut weight: u8 = 255;
 		for i in 0u8..self.length as u8 {
 			let vector: Vec<[u8; 2]> = Vec::new();
@@ -222,7 +221,7 @@ impl Grid {
 	fn get_faster_to_goal(&self, player: &Player, coord: [u8; 2], to_ignore: &Vec<[u8; 2]>) -> (u8, bool) {
 		let mut path_weight: u8 = self.get_weight(player, coord);
 	//
-		if (self.is_a_goal(coord, player)) {
+		if self.is_a_goal(coord, player) {
 			return (path_weight, true);
 		}
 
@@ -236,7 +235,7 @@ impl Grid {
 			let mut shorter_path = 255;
 			for cell in available_cells_close.iter() {
 				let (faster_to_goal, reach_goal) = self.get_faster_to_goal(player, *cell, &to_ignore_cell);
-				if (!reach_goal) {
+				if !reach_goal {
 					continue;
 				}
 				goal_reached = true;

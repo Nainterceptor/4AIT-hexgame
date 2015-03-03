@@ -6,8 +6,6 @@ pub enum CellStatus {
 }
 
 pub struct Cell {
-	x: u8,
-	y: u8,
 	pub status: CellStatus
 }
 
@@ -36,10 +34,8 @@ impl CellStatus {
 }
 
 impl Cell {
-	pub fn new(x: u8, y: u8) -> Cell {
+	pub fn new() -> Cell {
 		return Cell {
-			x: x,
-			y: y,
 			status: CellStatus::Empty
 		};
 	}
