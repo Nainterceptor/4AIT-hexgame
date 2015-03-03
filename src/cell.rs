@@ -19,8 +19,8 @@ impl CellStatus {
 	}
 	pub fn to_string(&self) -> &'static str {
 		return match *self {
-				CellStatus::Red => "Red",
-				CellStatus::Blue => "Blue",
+				CellStatus::Red => "Red (Vertically)",
+				CellStatus::Blue => "Blue (Horizontally)",
 				CellStatus::Empty => "Nothing",
 			};
 	}
