@@ -8,7 +8,9 @@ pub struct Player {
 }
 
 pub enum PlayerType {
-	AI,
+	RandomAI,
+	PathAI,
+	ButeforceAI,
 	Human
 }
 
@@ -23,11 +25,13 @@ impl Player {
 
 		let player_type: PlayerType;
 		loop {
-			println!("{} will be human ? (yes/no)", name);
+			println!("{} will be [h]uman, [r]andom IA, [p]ath IA, [b]ruteforce IA ?", name);
 			let grid_input = stdin.lock().lines().next().unwrap().ok().unwrap();
 			match grid_input.trim() {
-					"yes" => { player_type = PlayerType::Human; break; },
-					"no" => { player_type = PlayerType::AI; break;},
+					"h" => { player_type = PlayerType::Human; break; },
+					"p" => { player_type = PlayerType::PathAI; break;},
+					"r" => { player_type = PlayerType::RandomAI; break;},
+					"b" => { player_type = PlayerType::ButeforceAI; break;}
 					_ => {continue;}
 				};
 		};
@@ -40,8 +44,8 @@ impl Player {
 	}
 	pub fn inverse(&self) -> CellStatus {
 		return match self.cell_code {
-			CellStatus::Red => CellStatus::Blue,
-			CellStatus::Blue => CellStatus::Red,
+			CellStatus::Black => CellStatus::White,
+			CellStatus::White => CellStatus::Black,
 			_ => panic!("Bad player color")
 		}
 	}
@@ -50,7 +54,9 @@ impl Player {
 impl PlayerType {
 	pub fn to_string(&self) -> &'static str {
 		return match *self {
-				PlayerType::AI => "AI",
+				PlayerType::PathAI => "Path AI",
+				PlayerType::RandomAI => "Random AI",
+				PlayerType::ButeforceAI => "Bruteforce AI",
 				PlayerType::Human => "Human"
 			};
 	}

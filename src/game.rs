@@ -27,29 +27,21 @@ impl Game {
 			}
 			self.print_turn_message();
 			match self.get_current_player().player_type {
-				PlayerType::AI => {
+				PlayerType::RandomAI => {
 					let shuffled_grid: Vec<[u8; 2]> = self.grid.get_shuffled_free_cells();
-					let mut better_position: [u8; 2] = shuffled_grid[0];
-					let mut better_weight = 255;
-					for try_position in shuffled_grid.iter() {
-						self.grid.edit(&self.players[(self.turn % 2)  as usize], *try_position);
-						let current_weight = self.grid.get_lower_weight(&self.players[(self.turn % 2)  as usize]);
-						if better_weight < current_weight {
-							better_position = *try_position;
-							better_weight = current_weight;
-						}
-						self.grid.reset(*try_position);
-					}
-					self.grid.edit(&self.players[(self.turn % 2)  as usize], better_position);
+					self.grid.edit(&self.players[(self.turn % 2)  as usize].cell_code, shuffled_grid[0]);
 				},
 				PlayerType::Human => {
 					let coord: [u8; 2] = self.grid.get_coord();
 					if self.grid.is_free_cell(coord) {
-						self.grid.edit(&self.players[(self.turn % 2)  as usize], coord);
+						self.grid.edit(&self.players[(self.turn % 2)  as usize].cell_code, coord);
 					} else {
 						println!("This cell is not free");
 						continue; //prevent turn_increase
 					}
+				}
+				_ => {
+					panic!("Player type not supported");
 				}
 			};
 			self.turn_increase();
@@ -58,10 +50,10 @@ impl Game {
 
 	fn has_winner(&self) -> bool {
 		for player in self.players.iter() {
-			if self.grid.has_winner_path(player) {
+			/*if self.grid.has_winner_path(player) {
 				println!("Congratulations, {}, you've won.", player.name);
 				return true;
-			}
+			}*/
 		}
 		return false;
 	}

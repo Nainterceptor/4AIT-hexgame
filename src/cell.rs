@@ -1,4 +1,5 @@
 #[derive(PartialEq)]
+#[derive(Copy)]
 pub enum CellStatus {
 	Empty,
 	Black,
