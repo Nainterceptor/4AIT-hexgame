@@ -99,6 +99,22 @@ impl Grid {
 		return not_visited_cells_close;
 	}
 
+	fn iterable_not_visited_cells_close(&self, player: &Player, cell: [u8; 2], visited: &Vec<[u8; 2]>, focus_on_player: bool) -> Vec<Vec<[u8; 2]>> {
+		let cells_close: Vec<Vec<[u8; 2]>> = self.iterable_available_cells_close(player, cell, focus_on_player);
+		let mut not_visited_cells_close: Vec<Vec<[u8; 2]>> = Vec::with_capacity(cells_close.len());
+
+		for cell in cells_close.iter() {
+			let mut subnot_visited_cells_close: Vec<[u8; 2]> = Vec::with_capacity(cell.len());
+			for subcell in cell.iter() {
+				if !has_pos_in_vector(&visited, *subcell)  {
+					subnot_visited_cells_close.push(*subcell);
+				}
+			}
+			not_visited_cells_close.push(subnot_visited_cells_close);
+		}
+		return not_visited_cells_close;
+	}
+
 	fn available_cells_close(&self, player: &Player, cell: [u8; 2], focus_on_player: bool) -> Vec<[u8; 2]> {
 		let cells_close: Vec<[u8; 2]> = self.cells_close(cell);
 		let mut available_cells_close: Vec<[u8; 2]> = Vec::with_capacity(cells_close.len());
@@ -108,6 +124,23 @@ impl Grid {
 			if (cell_obj.status != player.inverse() && !focus_on_player) || (cell_obj.status != player.inverse() && !cell_obj.is_empty())  {
 				available_cells_close.push(*cell);
 			}
+		}
+		return available_cells_close;
+	}
+
+	fn iterable_available_cells_close(&self, player: &Player, cell: [u8; 2], focus_on_player: bool) -> Vec<Vec<[u8; 2]>> {
+		let cells_close: Vec<Vec<[u8; 2]>> = self.iterable_cells_close(cell, player);
+		let mut available_cells_close: Vec<Vec<[u8; 2]>> = Vec::with_capacity(cells_close.len());
+
+		for cell in cells_close.iter() {
+			let mut subavailable_cells_close: Vec<[u8; 2]> = Vec::with_capacity(cell.len());
+			for subcell in cell.iter() {
+				let cell_obj: &Cell = self.get_cell(*subcell);
+				if (cell_obj.status != player.inverse() && !focus_on_player) || (cell_obj.status != player.inverse() && !cell_obj.is_empty())  {
+					subavailable_cells_close.push(*subcell);
+				}
+			}
+			available_cells_close.push(subavailable_cells_close);
 		}
 		return available_cells_close;
 	}
@@ -139,6 +172,37 @@ impl Grid {
 			}
 			let new_y = new_i_y as u8;
 			cells_values.push([new_x, new_y]);
+		}
+		return cells_values;
+	}
+
+	pub fn iterable_cells_close(&self, cell: [u8; 2], player: &Player) -> Vec<Vec<[u8; 2]>> {
+		let mut cells_values: Vec<Vec<[u8; 2]>> = Vec::with_capacity(3);
+		let relative_positions: [[[i8; 2]; 3]; 3] = match player.cell_code {
+			CellStatus::Red => [[[1, 1], [0, 1], [-1, 1]], [[1, 0], [0, 0], [-1, 0]], [[1, -1], [0, -1], [-1, -1]]],
+			CellStatus::Blue => [[[1, 1], [1, 0], [1, -1]], [[0, -1], [0, 0], [0, 1]], [[-1, 1], [-1, 0], [-1, -1]]],
+			_ => panic!("Bad code")
+		};
+		for group_relative_position in relative_positions.iter() {
+			let mut groupe_cells: Vec<[u8; 2]> = Vec::with_capacity(group_relative_position.len());
+			for relative_position in group_relative_position.iter() {
+				if *relative_position == [0, 0] {
+					continue;
+				}
+				let new_i_x = cell[0] as i8 + relative_position[0];
+				if new_i_x < 0 || new_i_x >= self.length as i8 {
+					continue;
+				}
+				let new_x = new_i_x as u8;
+
+				let new_i_y = cell[1] as i8 + relative_position[1];
+				if new_i_y < 0 || new_i_y >= self.length as i8 {
+					continue;
+				}
+				let new_y = new_i_y as u8;
+				groupe_cells.push([new_x, new_y]);
+			}
+			cells_values.push(groupe_cells);
 		}
 		return cells_values;
 	}
@@ -228,19 +292,24 @@ impl Grid {
 		let mut to_ignore_cell = to_ignore.clone();
 		to_ignore_cell.push(coord);
 
-		let available_cells_close = self.not_visited_cells_close(player, coord, &to_ignore_cell, false);
+		let available_cells_close = self.iterable_not_visited_cells_close(player, coord, &to_ignore_cell, false);
 
 		let mut goal_reached: bool = false;
 		if available_cells_close.len() != 0 {
 			let mut shorter_path = 255;
 			for cell in available_cells_close.iter() {
-				let (faster_to_goal, reach_goal) = self.get_faster_to_goal(player, *cell, &to_ignore_cell);
-				if !reach_goal {
-					continue;
+				for subcell in cell.iter() {
+					let (faster_to_goal, reach_goal) = self.get_faster_to_goal(player, *subcell, &to_ignore_cell);
+					if !reach_goal {
+						continue;
+					}
+					goal_reached = true;
+					if faster_to_goal < shorter_path {
+						shorter_path = faster_to_goal;
+					}
 				}
-				goal_reached = true;
-				if faster_to_goal < shorter_path {
-					shorter_path = faster_to_goal;
+				if goal_reached {
+					break;
 				}
 			}
 			path_weight = path_weight + shorter_path;

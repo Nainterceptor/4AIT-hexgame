@@ -10,7 +10,7 @@ pub struct Game {
 
 impl Game {
 	pub fn new() -> Game {
-		println!("First, please answer to some questios...");
+		println!("First, please answer to some questions...");
 
 		return Game {
 			grid: Grid::new(Grid::get_u8_in_range()),
