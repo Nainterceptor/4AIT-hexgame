@@ -1,8 +1,8 @@
 #[derive(PartialEq)]
 pub enum CellStatus {
 	Empty,
-	Red,
-	Blue
+	Black,
+	White
 }
 
 pub struct Cell {
@@ -12,22 +12,22 @@ pub struct Cell {
 impl CellStatus {
 	fn to_letter(&self) -> &'static str {
 		return match *self {
-				CellStatus::Red => "R",
-				CellStatus::Blue => "B",
+				CellStatus::Black => "B",
+				CellStatus::White => "W",
 				CellStatus::Empty => "-",
 			};
 	}
 	pub fn to_string(&self) -> &'static str {
 		return match *self {
-				CellStatus::Red => "Red (Vertically)",
-				CellStatus::Blue => "Blue (Horizontally)",
+				CellStatus::Black => "Black (Vertically)",
+				CellStatus::White => "White (Horizontally)",
 				CellStatus::Empty => "Nothing",
 			};
 	}
 	pub fn get_color_for_player(num: u8) -> CellStatus {
 		return match num {
-			1 => CellStatus::Red,
-			2 => CellStatus::Blue,
+			1 => CellStatus::Black,
+			2 => CellStatus::White,
 			_ => {panic!("This game can't be player with other player than 1 or 2")}
 		};
 	}
@@ -48,10 +48,4 @@ impl Cell {
 			_ => false
 		}
 	}
-//	pub fn status_eq(&self, cell_status: CellStatus) -> bool {
-//		match self.status {
-//			cell_status => true,
-//			_ => false
-//		}
-//	}
 }
