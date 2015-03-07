@@ -8,17 +8,17 @@ static DEFAULT_GRID: u8 = 10;
 
 pub struct Grid {
 	vector: Vec<Vec<Cell>>,
-	length: u8
+	pub length: u8
 }
 
 impl Grid {
 	//For performances considerations, sides can't be > to 255, like u8
 	pub fn new(side_length: u8) -> Grid {
 		let mut vector: Vec<Vec<Cell>> = Vec::with_capacity(side_length as usize);
-		for _ in 0..side_length {
+		for x in 0..side_length {
 			let mut vector_internal: Vec<Cell> = Vec::with_capacity(side_length as usize);
-			for _ in 0..side_length {
-				vector_internal.push(Cell::new());
+			for y in 0..side_length {
+				vector_internal.push(Cell::new(x, y));
 			}
 			vector.push(vector_internal);
 		}
@@ -50,35 +50,12 @@ impl Grid {
 	}
 
 
-	fn get_cell(&self, cell: [u8; 2]) -> &Cell {
+	pub fn get_cell(&self, cell: [u8; 2]) -> &Cell {
 		return &self.vector[cell[0] as usize][cell[1] as usize];
 	}
 
 	fn get_mut_cell(&mut self, cell: [u8; 2]) -> &mut Cell {
 		return &mut self.vector[cell[0] as usize][cell[1] as usize];
-	}
-
-	pub fn cells_close(&self, cell: [u8; 2]) -> Vec<[u8; 2]> {
-		let mut cells_values: Vec<[u8; 2]> = Vec::with_capacity(8);
-		let relative_positions: [[i8; 2]; 8] = [
-			[-1, -1],	[-1, 0],	[-1, 1],
-			[0, -1], 	/*0,0*/		[0, 1],
-			[1, -1],	[1, 0],		[1, 1]];
-		for relative_position in relative_positions.iter() {
-			let new_i_x = cell[0] as i8 + relative_position[0];
-			if new_i_x < 0 || new_i_x >= self.length as i8 {
-				continue;
-			}
-			let new_x = new_i_x as u8;
-
-			let new_i_y = cell[1] as i8 + relative_position[1];
-			if new_i_y < 0 || new_i_y >= self.length as i8 {
-				continue;
-			}
-			let new_y = new_i_y as u8;
-			cells_values.push([new_x, new_y]);
-		}
-		return cells_values;
 	}
 
 	pub fn get_coord(&self) -> [u8; 2] {
@@ -137,13 +114,30 @@ impl Grid {
 		sliced_shuffled_free_cells.push_all(&sliced_free_cells);
 		return sliced_shuffled_free_cells;
 	}
-}
 
-fn has_pos_in_vector(positions: &Vec<[u8; 2]>, search: [u8; 2]) -> bool {
-	for pos in positions.iter() {
-		if search == *pos {
+	pub fn has_path_to_goal(&self, player: &Player) -> bool {
+		let mut positions_visited: Vec<[u8; 2]> = Vec::new();
+		for i in 0..self.length {
+			if (player.cell_code == CellStatus::Black && player.cell_code == self.get_cell([0, i]).status && self.go_to_goal(player, [0, i], &mut positions_visited))
+			|| (player.cell_code == CellStatus::White && player.cell_code == self.get_cell([i, 0]).status && self.go_to_goal(player, [i, 0], &mut positions_visited)) {
+				return true
+			}
+		}
+		return false
+	}
+
+	fn go_to_goal(&self, player: &Player, coord: [u8; 2], positions_visited: &mut Vec<[u8; 2]>) -> bool {
+		positions_visited.push(coord);
+		let cell: &Cell = self.get_cell(coord);
+		if cell.is_a_goal(player, self) {
 			return true;
 		}
+		for cell in cell.get_same_close(self) {
+			if !cell.is_in_vector(positions_visited)
+			&& self.go_to_goal(player, cell.to_coord(), positions_visited) {
+				return true;
+			}
+		}
+		return false;
 	}
-	return false;
 }

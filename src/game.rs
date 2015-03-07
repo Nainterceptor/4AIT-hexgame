@@ -50,10 +50,10 @@ impl Game {
 
 	fn has_winner(&self) -> bool {
 		for player in self.players.iter() {
-			/*if self.grid.has_winner_path(player) {
+			if self.grid.has_path_to_goal(player) {
 				println!("Congratulations, {}, you've won.", player.name);
 				return true;
-			}*/
+			}
 		}
 		return false;
 	}
