@@ -3,54 +3,84 @@
  */
 (function(){
     var hex = angular.module('hex',[]);
-    hex.controller('GameController',['$scope', function($scope){
+
+    hex.service('GridService',[function(){
+        var gridSize;
+        var grid = [];
+
+        this.setGridSize = function(size){
+            gridSize = size;
+        };
+
+        this.getGridSize = function(){
+          return gridSize;
+        };
+
+        this.setGrid = function(grd){
+            grid = grd;
+        };
+
+        this.getGrid = function(){
+          return grid;
+        };
+
+        var init = function(){
+            grid = [];
+        };
+
+        this.makeGrid = function(){
+            init();
+            var totalSize = gridSize + 2;
+            for (var l = 0; l < totalSize; l++){
+                grid.push([]);
+                for(var c = 0; c < (totalSize); c++){
+                    grid[l].push([]);
+                    if (l === 0 && c === 0 || l === 0 && c === totalSize - 1 ||
+                        l === totalSize - 1 && c === 0 || l === totalSize - 1 && c === totalSize - 1){
+                        grid[l][c] = 'hex-default';
+                    } else if (l == 0 || l == totalSize - 1){
+                        grid[l][c] = 'hex-default-red';
+                    } else if (c == 0 || c == totalSize - 1){
+                        grid[l][c] = 'hex-default-blue';
+                    } else {
+                        grid[l][c] = 'hex-default';
+                    }
+                }
+            }
+        };
+    }]);
+
+    hex.service('PlayRandomService',['GridService',function(GridService){
+        var gridSize = GridService.getGridSize();
+        var grid = GridService.getGrid();
+        var randomGrid = [];
+        for (var i = 0; i < gridSize; i++){
+            for (var j = 0; i < gridSize; i++){
+                randomGrid.push([i,j]);
+            }
+        }
+
+        this.play = function(){
+            var random = Math.floor((Math.random() * randomGrid.length));
+            var lign = random[0];
+            var col = random[1];
+        };
+    }]);
+
+    hex.controller('GameController',['$scope','GridService', function($scope,GridService){
         me = this;
         me.gridSize=3;
         me.grid = [];
         me.infos="";
-        var randomGrid = [];
-        var blueGrid = {};
-        var redGrid = {};
-
-        function init(){
-            randomGrid = [];
-            me.grid = [];
-            blueGrid = {};
-            redGrid = {};
-        }
-
-        function makeGrid(){
-            init();
-            var grid = [];
-            var totalSize = me.gridSize + 2;
-            for (var l = 0; l<(totalSize); l++){
-                grid.push([]);
-                randomGrid.push({value:l,col:[]});
-                for(var c = 0; c < (totalSize); c++){
-                    grid[l].push({});
-                    randomGrid[l].col.push(c);
-                    if (l === 0 && c === 0 || l === 0 && c === totalSize - 1 ||
-                        l === totalSize - 1 && c === 0 || l === totalSize - 1 && c === totalSize - 1){
-                        grid[l][c].class = 'hex-default';
-                    } else if (l == 0 || l == totalSize - 1){
-                        grid[l][c].class = 'hex-default-red';
-                    } else if (c == 0 || c == totalSize - 1){
-                        grid[l][c].class = 'hex-default-blue';
-                    } else {
-                        grid[l][c].class = 'hex-default';
-                    }
-                }
-            }
-            me.grid = angular.copy(grid);
-        }
 
         me.goodToPlay = function(){
-          return isOdd(me.gridSize)&&me.gridSize>0;
+            return isOdd(me.gridSize)&&me.gridSize>0;
         };
 
         me.play = function(){
-            makeGrid();
-            playRandomly();
+            GridService.setGridSize(me.gridSize);
+            GridService.makeGrid();
+            me.grid = GridService.getGrid();
         };
 
         function playRandomly (){

@@ -34,7 +34,7 @@
     <div class="row">
         <div ng-repeat="lign in Game.grid" class="col-md-12"
              ng-style="{'margin-left': $index*25+'px', 'margin-top': -12+'px'}">
-            <div ng-repeat="col in lign" ng-class="col.class" class="pull-left"></div>
+            <div ng-repeat="col in lign track by $index" ng-class="col" class="pull-left"></div>
         </div>
     </div>
 </div>
