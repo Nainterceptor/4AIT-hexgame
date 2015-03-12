@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html ng-app="hex">
+<head lang="en">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="hex.css"/>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+    <script src="hex.js"></script>
+    <meta charset="UTF-8">
+    <title>Hex Game</title>
+</head>
+<body ng-controller="GameController as Game">
+<div class="container" >
+    <div class="row">
+        <h1>Hex Games</h1>
+
+        <form ng-submit="Game.play()">
+            <div class="form-group">
+                <label for="gridSize">Grid Size</label>
+                <input ng-model="Game.gridSize" type="number" class="form-control" id="gridSize"
+                       placeholder="Enter a grid size">
+            </div>
+            <button ng-show="Game.goodToPlay()" type="submit" class="btn btn-default">Submit</button>
+        </form>
+    </div>
+    <div ng-show="Game.infos" class="row">
+        <h3>Informations</h3>
+        <pre id="infos">
+            {{Game.infos}}
+        </pre>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div ng-repeat="lign in Game.grid" class="col-md-12"
+             ng-style="{'margin-left': $index*25+'px', 'margin-top': -12+'px'}">
+            <div ng-repeat="col in lign" ng-class="col.class" class="pull-left"></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

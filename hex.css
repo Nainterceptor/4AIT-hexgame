@@ -1,0 +1,120 @@
+.hex-default, 
+.hex-default-red, 
+.hex-default-blue, 
+.hex-red, 
+.hex-blue,
+.hex-green{
+    position: relative;
+    width: 50px;
+    height: 29px;
+    margin: 14px 1px 14px 0;
+}
+
+.hex-default:before, .hex-default:after, 
+.hex-default-red:before, .hex-default-red:after,
+.hex-default-blue:before, .hex-default-blue:after,
+.hex-red:before, .hex-red:after,
+.hex-blue:before, .hex-blue:after,
+.hex-green:before, .hex-green:after {
+    content: "";
+    position: absolute;
+    width: 0;
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+}
+
+.hex-default {
+    background-color: darkgrey;
+}
+
+.hex-default:before {
+    bottom: 100%;
+    border-bottom: 14px solid darkgrey;
+}
+
+.hex-default:after {
+    top: 100%;
+    width: 0;
+    border-top: 14px solid darkgrey;
+}
+
+.hex-default-red {
+    background-color: darkred;
+}
+
+.hex-default-red:before {
+    bottom: 100%;
+    border-bottom: 14px solid darkred;
+}
+
+.hex-default-red:after {
+    top: 100%;
+    width: 0;
+    border-top: 14px solid darkred;
+}
+
+.hex-default-blue {
+    background-color: darkblue;
+}
+
+.hex-default-blue:before {
+    bottom: 100%;
+    border-bottom: 14px solid darkblue;
+}
+
+.hex-default-blue:after {
+    top: 100%;
+    width: 0;
+    border-top: 14px solid darkblue;
+}
+
+.hex-red {
+    background-color: red;
+}
+
+.hex-red:before {
+    bottom: 100%;
+    border-bottom: 14px solid red;
+}
+
+.hex-red:after {
+    top: 100%;
+    width: 0;
+    border-top: 14px solid red;
+}
+
+.hex-blue {
+    background-color: blue;
+}
+
+.hex-blue:before {
+    bottom: 100%;
+    border-bottom: 14px solid blue;
+}
+
+.hex-blue:after {
+    top: 100%;
+    width: 0;
+    border-top: 14px solid blue;
+}
+
+.hex-green {
+    background-color: green;
+}
+
+.hex-green:before {
+    bottom: 100%;
+    border-bottom: 14px solid green;
+}
+
+.hex-green:after {
+    top: 100%;
+    width: 0;
+    border-top: 14px solid green;
+}
+
+#infos {
+    margin-bottom: 30px;
+    max-height: 150px;
+}
+
