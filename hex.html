@@ -14,25 +14,68 @@
     <div class="row">
         <h1>Hex Games</h1>
 
-        <form ng-submit="Game.play()">
+        <form ng-submit="Game.start()">
             <div class="form-group">
                 <label for="gridSize">Grid Size</label>
                 <input ng-model="Game.gridSize" type="number" class="form-control" id="gridSize"
                        placeholder="Enter a grid size">
             </div>
-            <button ng-show="Game.goodToPlay()" type="submit" class="btn btn-default">Submit</button>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <strong>Blue Player</strong>
+
+                    <div class="radio">
+                        <label>
+                            <input type="radio" ng-model="Game.bluePlayer" value="random">
+                            Random method AI
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <strong>Red Player</strong>
+
+                    <div class="radio">
+                        <label>
+                            <input type="radio" ng-model="Game.redPlayer" value="random">
+                            Random method AI
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <strong>Who is playing first ?</strong>
+
+                    <div class="radio">
+                        <label>
+                            <input type="radio" ng-model="Game.firstPLayer" value="blue"
+                                   ng-checked="Game.firstPlayer == 'blue'">
+                            Blue
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" ng-model="Game.firstPLayer" value="red">
+                            Red
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button ng-show="Game.goodToPlay()" type="submit" class="btn btn-default">Start Playing</button>
         </form>
     </div>
-    <div ng-show="Game.infos" class="row">
+    <div ng-show="Game.infos.message" class="row">
         <h3>Informations</h3>
         <pre id="infos">
-            {{Game.infos}}
+            {{Game.infos.message}}
         </pre>
     </div>
 </div>
 <div class="container">
     <div class="row">
-        <div ng-repeat="lign in Game.grid" class="col-md-12"
+        <div ng-repeat="lign in Game.infos.grid" class="col-md-12"
              ng-style="{'margin-left': $index*25+'px', 'margin-top': -12+'px'}">
             <div ng-repeat="col in lign track by $index" ng-class="col" class="pull-left"></div>
         </div>
