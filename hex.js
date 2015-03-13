@@ -13,7 +13,7 @@
         return n == parseFloat(n);
     }
 
-    var hex = angular.module('hex',[]);
+    var hex = angular.module('hex',['luegg.directives']);
 
     hex.factory('InfosService',[function(){
         var service = {
@@ -53,6 +53,7 @@
         };
 
         var init = function(){
+            InfosService.grid = [];
             InfosService.redPlayed = [];
             InfosService.bluePlayed = [];
             for(var i=0; i<=gridSize+1;i++){
@@ -151,6 +152,7 @@
     hex.service('WinService',['InfosService','GridService', function(InfosService, GridService){
         var alreadyChecked;
         var gridSize;
+        var winPath;
 
         var generateAlreadyChecked = function(){
             alreadyChecked = [];
@@ -162,6 +164,7 @@
         var init = function(){
             generateAlreadyChecked();
             gridSize = GridService.getGridSize();
+            winPath = [];
         };
 
         var cellsAroundUnchecked = function(l,c){
@@ -217,19 +220,23 @@
             return i === gridSize;
         };
 
-        var hasWon = function(l,c,player){
+        var hasWon = function(l,c,player,winpth){
+            var currentWinPath = angular.copy(winpth);
             var res = false;
             alreadyChecked[l][c]='checked';
             if(isPlayerCell(l,c,player)){
+                currentWinPath.push([l,c]);
                 if(player === 'blue' && isWinCell(c)){
                     res = true;
+                    winPath = angular.copy(currentWinPath);
                 } else if(player === 'red' && isWinCell(l)){
                     res = true;
+                    winPath = angular.copy(currentWinPath);
                 } else {
                     var cellsAround = cellsAroundUnchecked(l,c);
                     angular.forEach(cellsAround,function(cell){
                         if(!res){
-                            res = hasWon(cell[0],cell[1],player);
+                            res = hasWon(cell[0],cell[1],player,currentWinPath);
                         }
                     });
                 }
@@ -237,20 +244,29 @@
             return res;
         };
 
+        var drawWinPath = function(){
+            angular.forEach(winPath,function(cell){
+                InfosService.grid[cell[0]][cell[1]]='hex-green';
+            });
+        };
+
+
         this.playerWon = function(player){
             init();
             var resultat = false;
             for(var i=1; i<=gridSize; i++){
                 if(player === 'blue'){
-                    if(hasWon(i,1,player)){
+                    if(hasWon(i,1,player,winPath)){
                         resultat = true;
                         InfosService.addMessage("Blue won !!\n");
+                        drawWinPath();
                         break;
                     }
                 } else {
-                    if(hasWon(1,i,player)){
+                    if(hasWon(1,i,player,winPath)){
                         resultat = true;
                         InfosService.addMessage("Red won !!\n");
+                        drawWinPath();
                         break;
                     }
                 }

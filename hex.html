@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="hex.css"/>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+    <script src="scrollglue.js"></script>
     <script src="hex.js"></script>
     <meta charset="UTF-8">
     <title>Hex Game</title>
@@ -68,7 +69,7 @@
     </div>
     <div ng-show="Game.infos.message" class="row">
         <h3>Informations</h3>
-        <pre id="infos">
+        <pre scroll-glue id="infos">
             {{Game.infos.message}}
         </pre>
     </div>
