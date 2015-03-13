@@ -11,7 +11,7 @@
                 InfosService[player+"Played"][l][c]="played";
                 var endDate = new Date();
                 var ms = endDate.getTime() - startDate.getTime();
-                InfosService.addMessage("Move done by "+ player +" in " + Math.floor(ms/1000) + "sec " + (ms % 1000) +"ms " +
+                InfosService.addMessage("Move done by "+ player +" with random method in " + Math.floor(ms/1000) + "sec " + (ms % 1000) +"ms " +
                 "[" + l + ","+ c + "]\n");
             };
         }])
@@ -184,7 +184,7 @@
             InfosService[player+"Played"][cell[0]][cell[1]]="played";
             var endDate = new Date();
             var ms = endDate.getTime() - startDate.getTime();
-            InfosService.addMessage("Move done by "+ player +" in " + Math.floor(ms/1000) + "sec " + (ms % 1000) +"ms " +
+            InfosService.addMessage("Move done by "+ player +" with path method in " + Math.floor(ms/1000) + "sec " + (ms % 1000) +"ms " +
             "[" + cell[0] + ","+ cell[1] + "]\n");
 
         }
