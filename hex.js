@@ -19,7 +19,9 @@
         var service = {
             message: "\n---- Logs ----\n\n",
             unplayedGrid: [],
-            grid: []
+            grid: [],
+            redPlayed: [],
+            bluePlayed: []
         };
 
         service.addMessage = function(msg){
@@ -27,15 +29,12 @@
         };
 
         service.generateUnplayedGrid = function(size){
+            service.unplayedGrid = [];
             for (var i = 0; i < size; i++){
                 for (var j = 0; j < size; j++){
                     service.unplayedGrid.push([i+1,j+1]);
                 }
             }
-        };
-
-        service.sliceUnplayedGrid = function(index){
-            service.unplayedGrid.splice(index,1);
         };
 
         return service;
@@ -54,7 +53,12 @@
         };
 
         var init = function(){
-            InfosService.grid = [];
+            InfosService.redPlayed = [];
+            InfosService.bluePlayed = [];
+            for(var i=0; i<=gridSize+1;i++){
+                InfosService.redPlayed.push([]);
+                InfosService.bluePlayed.push([]);
+            }
         };
 
         this.makeGrid = function(){
@@ -86,15 +90,17 @@
             var l = InfosService.unplayedGrid[random][0];
             var c = InfosService.unplayedGrid[random][1];
             InfosService.grid[l][c] = 'hex-' + player;
-            InfosService.sliceUnplayedGrid(random);
+            InfosService.unplayedGrid.splice(random,1);
+            InfosService[player+"Played"][l][c]="played";
             var endDate = new Date();
             var ms = endDate.getTime() - startDate.getTime();
-            InfosService.addMessage("Move done in " + Math.floor(ms/1000) + "sec " + (ms % 1000) +"ms\n");
+            InfosService.addMessage("Move done by "+ player +" in " + Math.floor(ms/1000) + "sec " + (ms % 1000) +"ms " +
+            "[" + l + ","+ c + "]\n");
         };
     }]);
 
-    hex.service('PlayService',['InfosService','PlayRandomService','GridService',
-        function(InfosService,PlayRandomService,GridService){
+    hex.service('PlayService',['InfosService','PlayRandomService','GridService','WinService',
+        function(InfosService,PlayRandomService,GridService,WinService){
             var startDate;
             var endDate;
             var init = function(){
@@ -113,23 +119,27 @@
                 var gridSize = GridService.getGridSize();
                 init();
                 for (var i=1; i<=(gridSize*gridSize); i++){
+                    var player;
                     InfosService.addMessage("Move n°" + i);
                     if(firstPlayer === 'blue'){
                         if(isOdd(i)){
-                            PlayRandomService.play('blue');
+                            player = 'blue';
                         } else {
-                            PlayRandomService.play('red');
+                            player = 'red';
                         }
                     } else {
                         if(isOdd(i)){
-                            PlayRandomService.play('red');
+                            player = 'red';
                         } else {
-                            PlayRandomService.play('blue');
+                            player = 'blue';
                         }
+                    }
+                    PlayRandomService.play(player);
+                    if(WinService.playerWon(player)){
+                        break;
                     }
                 }
                 finish();
-
             };
             this.play = function(firstPlayer, bluePlayer, redPlayer){
                 if (bluePlayer === 'random' && redPlayer === 'random'){
@@ -137,6 +147,117 @@
                 }
             };
         }]);
+
+    hex.service('WinService',['InfosService','GridService', function(InfosService, GridService){
+        var alreadyChecked;
+        var gridSize;
+
+        var generateAlreadyChecked = function(){
+            alreadyChecked = [];
+            for(var i = 0; i < InfosService.grid.length; i++){
+                alreadyChecked.push([]);
+            }
+        };
+
+        var init = function(){
+            generateAlreadyChecked();
+            gridSize = GridService.getGridSize();
+        };
+
+        var cellsAroundUnchecked = function(l,c){
+            var res = [];
+            if(l-1 > 0){
+                if(!alreadyChecked[l-1][c]){
+                    res.push([l-1,c]);
+                    alreadyChecked[l-1][c]='checked';
+                }
+                if(c+1 <= gridSize){
+                    if(!alreadyChecked[l-1][c+1]){
+                        res.push([l-1,c+1]);
+                        alreadyChecked[l-1][c+1]='checked';
+                    }
+                }
+            }
+            if(c-1 > 0){
+                if(!alreadyChecked[l][c-1]){
+                    res.push([l,c-1]);
+                    alreadyChecked[l][c-1]='checked';
+                }
+            }
+            if(!alreadyChecked[l][c]){
+                res.push([l,c]);
+                alreadyChecked[l][c]='checked';
+            }
+            if(c+1 <= gridSize){
+                if(!alreadyChecked[l][c+1]){
+                    res.push([l,c+1]);
+                    alreadyChecked[l][c+1]='checked';
+                }
+            }
+            if(l+1 <= gridSize){
+                if(c-1 > 0){
+                    if(!alreadyChecked[l+1][c-1]){
+                        res.push([l+1,c-1]);
+                        alreadyChecked[l+1][c-1]='checked';
+                    }
+                }
+                if(!alreadyChecked[l+1][c]){
+                    res.push([l+1,c]);
+                    alreadyChecked[l+1][c]='checked';
+                }
+            }
+            return res;
+        };
+
+        var isPlayerCell = function(l,c,player){
+            return InfosService[player+"Played"][l][c] !== undefined;
+        };
+
+        var isWinCell = function(i){
+            return i === gridSize;
+        };
+
+        var hasWon = function(l,c,player){
+            var res = false;
+            alreadyChecked[l][c]='checked';
+            if(isPlayerCell(l,c,player)){
+                if(player === 'blue' && isWinCell(c)){
+                    res = true;
+                } else if(player === 'red' && isWinCell(l)){
+                    res = true;
+                } else {
+                    var cellsAround = cellsAroundUnchecked(l,c);
+                    angular.forEach(cellsAround,function(cell){
+                        if(!res){
+                            res = hasWon(cell[0],cell[1],player);
+                        }
+                    });
+                }
+            }
+            return res;
+        };
+
+        this.playerWon = function(player){
+            init();
+            var resultat = false;
+            for(var i=1; i<=gridSize; i++){
+                if(player === 'blue'){
+                    if(hasWon(i,1,player)){
+                        resultat = true;
+                        InfosService.addMessage("Blue won !!\n");
+                        break;
+                    }
+                } else {
+                    if(hasWon(1,i,player)){
+                        resultat = true;
+                        InfosService.addMessage("Red won !!\n");
+                        break;
+                    }
+                }
+            }
+            return resultat;
+        }
+    }]);
 
     hex.controller('GameController',['$scope','GridService','InfosService','PlayService',
         function($scope,GridService,InfosService,PlayService){
@@ -153,7 +274,6 @@
                 GridService.makeGrid();
             };
 
-
             me.goodToPlay = function(){
                 return isOdd(me.gridSize)&&me.gridSize>0;
             };
@@ -162,114 +282,5 @@
                 init();
                 PlayService.play(me.firstPlayer, me.bluePlayer, me.redPlayer);
             };
-
-            function haveAWinner(){
-                var res = false;
-                for(var i=1;i<= me.gridSize;i++){
-                    var resB = blueCheckArrond(i,1);
-                    if(resB){
-                        res = true;
-                        break;
-                    }
-                    console.log(i);
-                    var resR = redCheckArrond(1,i);
-                    if(resR){
-                        res = true;
-                        break;
-                    }
-                }
-                return res;
-            }
-
-            function redCheckArrond(l,c,cellsChecked, winPath){
-                if(me.grid[l][c].class !== 'hex-red'){
-                    return false;
-                }
-                if(!cellsChecked){
-                    cellsChecked = [];
-                    winPath = [];
-                }
-                winPath.push([l,c]);
-                if(l+1 == me.grid.length-1){
-                    drawWinPath(winPath);
-                    me.infos+="Red wins !! \n";
-                    return true;
-                }
-                if(!cellsChecked[l]){
-                    cellsChecked[l]=[];
-                }
-                cellsChecked[l][c]="done";
-                if(c-1 !== 0 ){
-                    if(!cellsChecked[l+1] || !cellsChecked[l+1][c-1]){
-                        var firstCheck = redCheckArrond(l+1,c-1,cellsChecked, winPath);
-                        if(firstCheck){
-                            return true;
-                        }
-                    }
-                }
-                if(!cellsChecked[l+1] || !cellsChecked[l+1][c]){
-                    return redCheckArrond(l+1,c,cellsChecked, winPath)
-                }
-            }
-
-            function drawWinPath(path){
-                angular.forEach(path, function(coor){
-                    me.grid[coor[0]][coor[1]].class = 'hex-green';
-                })
-            }
-
-            function blueCheckArrond(l,c,cellsChecked, winPath){
-                if(me.grid[l][c].class !== 'hex-blue'){
-                    return false;
-                }
-                if(!cellsChecked){
-                    cellsChecked = [];
-                    winPath = [];
-                }
-                winPath.push([l,c]);
-                if(c+1 == me.grid.length-1){
-                    drawWinPath(winPath);
-                    me.infos+="Blue wins !! \n";
-                    return true;
-                }
-                if(!cellsChecked[l]){
-                    cellsChecked[l]=[];
-                }
-                cellsChecked[l][c]="done";
-                if(l-1 !== 0 ){
-                    if(!cellsChecked[l-1] || !cellsChecked[l-1][c+1]){
-                        var firstCheck = blueCheckArrond(l-1,c+1,cellsChecked, winPath);
-                        if(firstCheck){
-                            return true;
-                        }
-                    }
-                }
-                if(!cellsChecked[l] || !cellsChecked[l][c+1]){
-                    return blueCheckArrond(l,c+1,cellsChecked, winPath);
-                }
-            }
-
-            //function haveAWinner(l,c){
-            //    console.log(l,c);
-            //    console.log('blue',angular.copy(blueGrid));
-            //    console.log('red',angular.copy(redGrid));
-            //    var res = false;
-            //    if(blueGrid[l]){
-            //        console.log('blue length',blueGrid[l].length);
-            //        if(blueGrid[l].length == me.gridSize){
-            //            me.infos += "Blue wins !! \n";
-            //            res = true;
-            //        }
-            //    }
-            //    if(redGrid[c]){
-            //        console.log('red length', redGrid[c].length);
-            //        if(redGrid[c].length == me.gridSize){
-            //            me.infos += "Red wins !! \n";
-            //            res = true;
-            //        }
-            //    }
-            //    return res;
-            //}
-
         }]);
 })();
