@@ -12,20 +12,21 @@ pub enum CellStatus {
 #[derive(Copy)]
 pub struct Cell {
 	pub status: CellStatus,
-	x: u8,
-	y: u8
+	pub x: u8,
+	pub y: u8
 }
 
 pub struct RelativePositionWeight {
 	x: i8,
 	y: i8,
-	weight: u8
+	weight: i8
 }
 
+#[derive(Copy)]
 pub struct PositionWeight {
 	x: u8,
 	y: u8,
-	weight: u8
+	weight: i8
 }
 
 impl CellStatus {
@@ -74,21 +75,41 @@ impl Cell {
 //	[ _, _]  [ 0,-1]  [ 1,-1]
 //	    [-1, 0]  [ _, _]  [ 1, 0]
 //	      [-1, 1]  [ 0, 1]  [ _, _]
-	fn get_close_relative(&self) -> Vec<RelativePositionWeight> {
+	fn get_close_relative(&self, color: CellStatus) -> Vec<RelativePositionWeight> {
 		let mut list: Vec<RelativePositionWeight> = Vec::with_capacity(6);
-		list.push(RelativePositionWeight{x:1, y: -1, weight: 3});
-		list.push(RelativePositionWeight{x:1, y: 0, weight: 3});
-		list.push(RelativePositionWeight{x:0, y: -1, weight: 2});
-		list.push(RelativePositionWeight{x:0, y: 1, weight: 2});
-		list.push(RelativePositionWeight{x:-1, y: 0, weight: 1});
-		list.push(RelativePositionWeight{x:-1, y: 1, weight: 1});
+		match color {
+			CellStatus::Empty => {
+				list.push(RelativePositionWeight{x: 0, y: -1, weight: 0});
+				list.push(RelativePositionWeight{x: 1, y: -1, weight: 0});
+				list.push(RelativePositionWeight{x: -1, y: 0, weight: 0});
+				list.push(RelativePositionWeight{x: 1, y: 0, weight: 0});
+				list.push(RelativePositionWeight{x: -1, y: 1, weight: 0});
+				list.push(RelativePositionWeight{x: 0, y: 1, weight: 0});
+			},
+			CellStatus::White => {
+				list.push(RelativePositionWeight{x: -1, y: 1, weight: 1});
+				list.push(RelativePositionWeight{x: 0, y: 1, weight: 1});
+				list.push(RelativePositionWeight{x: -1, y: 0, weight: 0});
+				list.push(RelativePositionWeight{x: 1, y: 0, weight: 0});
+				list.push(RelativePositionWeight{x: 0, y: -1, weight: -1});
+				list.push(RelativePositionWeight{x: 1, y: -1, weight: -1});
+			},
+			CellStatus::Black => {
+				list.push(RelativePositionWeight{x: 1, y: -1, weight: 1});
+				list.push(RelativePositionWeight{x: 1, y: 0, weight: 1});
+				list.push(RelativePositionWeight{x: 0, y: -1, weight: 0});
+				list.push(RelativePositionWeight{x: 0, y: 1, weight: 0});
+				list.push(RelativePositionWeight{x: -1, y: 0, weight: -1});
+				list.push(RelativePositionWeight{x: -1, y: 1, weight: -1});
+			}
+		}
 		return list;
 	}
 
-	fn get_close(&self, grid: &Grid) -> Vec<PositionWeight> {
+	fn get_close(&self, grid: &Grid, color: CellStatus) -> Vec<PositionWeight> {
 		let grid_length = grid.length as i16;
 		let mut list: Vec<PositionWeight> = Vec::with_capacity(6);
-		for relative_position in self.get_close_relative() {
+		for relative_position in self.get_close_relative(color) {
 			let i_x = self.x as i16 + relative_position.x as i16;
 			let i_y = self.y as i16 + relative_position.y as i16;
 			if i_x < 0 || i_y < 0 || i_x >= grid_length || i_y >= grid_length {
@@ -101,10 +122,51 @@ impl Cell {
 
 	pub fn get_same_close(&self, grid: &Grid) -> Vec<Cell> {
 		let mut list: Vec<Cell> = Vec::with_capacity(6);
-		for cell_close in self.get_close(grid) {
+		for cell_close in self.get_close(grid, self.status) {
 			let cell_close_Cell = grid.get_cell([cell_close.x, cell_close.y]);
 			if self.status == cell_close_Cell.status {
 				list.push(*cell_close_Cell);
+			}
+		}
+		return list;
+	}
+
+	pub fn get_available_close(&self, grid: &Grid) -> Vec<Cell> {
+		let mut list: Vec<Cell> = Vec::with_capacity(6);
+		for cell_close in self.get_close(grid, self.status) {
+			let cell_close_Cell = grid.get_cell([cell_close.x, cell_close.y]);
+			if CellStatus::Empty == cell_close_Cell.status {
+					list.push(*cell_close_Cell);
+			}
+		}
+		return list;
+	}
+
+	fn get_close_random(&self, grid: &Grid, color: CellStatus) -> Vec<PositionWeight> {
+		use std::rand::{thread_rng, Rng};
+
+		let mut cells_close = self.get_close(grid, color);
+		let mut sliced_shuffled_cells_close: Vec<PositionWeight> = Vec::with_capacity(cells_close.len());
+		let sliced_cells_close: &mut [PositionWeight] = cells_close.as_mut_slice();
+		thread_rng().shuffle(sliced_cells_close);
+		for cell in sliced_cells_close {
+			sliced_shuffled_cells_close.push(*cell);
+		}
+		sort_by_weight(&mut sliced_shuffled_cells_close);
+		return sliced_shuffled_cells_close;
+	}
+
+	pub fn get_available_close_random_uniq_weight(&self, grid: &Grid) -> Vec<Cell> {
+		let mut list: Vec<Cell> = Vec::with_capacity(6);
+		let mut weight_list: Vec<i8> = Vec::with_capacity(3);
+		for cell_close in self.get_close_random(grid, self.status) {
+			if i8_is_in_vector(cell_close.weight, &weight_list) {
+				continue;
+			}
+			weight_list.push(cell_close.weight);
+			let cell_close_Cell = grid.get_cell([cell_close.x, cell_close.y]);
+			if CellStatus::Empty == cell_close_Cell.status {
+					list.push(*cell_close_Cell);
 			}
 		}
 		return list;
@@ -127,5 +189,29 @@ impl Cell {
 			}
 		}
 		return false;
+	}
+}
+
+pub fn i8_is_in_vector(value: i8, vector: &Vec<i8>) -> bool {
+	for pos in vector.iter() {
+		if value == *pos {
+			return true;
+		}
+	}
+	return false;
+}
+
+pub fn sort_by_weight(vector: &mut Vec<PositionWeight>){
+	let mut temp;
+	let length = vector.len();
+
+	for _ in 0.. length {
+		for i in 0..length - 1 {
+			if vector[i].weight < vector[i+1].weight  {
+				temp = vector[i+1];
+				vector[i+1] = vector[i];
+				vector[i] = temp;
+			}
+		}
 	}
 }

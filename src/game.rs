@@ -11,10 +11,10 @@ pub struct Game {
 impl Game {
 	pub fn new() -> Game {
 		println!("First, please answer to some questions...");
-
+		let length = Grid::get_u8_in_range();
 		return Game {
-			grid: Grid::new(Grid::get_u8_in_range()),
-			players: [Player::new(1), Player::new(2)],
+			grid: Grid::new(length),
+			players: [Player::new(1, length), Player::new(2, length)],
 			turn: 0
 		};
 	}
@@ -28,8 +28,22 @@ impl Game {
 			self.print_turn_message();
 			match self.get_current_player().player_type {
 				PlayerType::RandomAI => {
-					let shuffled_grid: Vec<[u8; 2]> = self.grid.get_shuffled_free_cells();
-					self.grid.edit(&self.players[(self.turn % 2)  as usize].cell_code, shuffled_grid[0]);
+					let random_choice: [u8; 2] = self.grid.get_shuffled_free_cells()[0];
+					self.grid.edit(&self.players[(self.turn % 2)  as usize].cell_code, random_choice);
+				},
+				PlayerType::PathAI => {
+					let coord: [u8; 2];
+					match self.get_current_player().get_next_PathAI_move(&self.grid) {
+						Some(x) => {
+							coord = x;
+						},
+						None => {
+							coord = self.grid.get_shuffled_free_cells()[0];
+						}
+					}
+					println!("{:?}", coord);
+					self.grid.edit(&self.players[(self.turn % 2)  as usize].cell_code, coord);
+					self.players[(self.turn % 2) as usize].add_played_cell(*self.grid.get_cell(coord));
 				},
 				PlayerType::Human => {
 					let coord: [u8; 2] = self.grid.get_coord();

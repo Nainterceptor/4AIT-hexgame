@@ -49,7 +49,6 @@ impl Grid {
 		}
 	}
 
-
 	pub fn get_cell(&self, cell: [u8; 2]) -> &Cell {
 		return &self.vector[cell[0] as usize][cell[1] as usize];
 	}
@@ -139,5 +138,17 @@ impl Grid {
 			}
 		}
 		return false;
+	}
+
+	pub fn count_for_player(&self, player: &Player) -> u16 {
+		let mut sum = 0;
+		for x in self.vector.iter() {
+			for y in x.iter() {
+				if y.status == player.cell_code {
+					sum = sum + 1;
+				}
+			}
+		}
+		return sum;
 	}
 }
