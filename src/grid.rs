@@ -6,6 +6,7 @@ use player::Player;
 
 static DEFAULT_GRID: u8 = 10;
 
+#[derive(Clone)]
 pub struct Grid {
 	vector: Vec<Vec<Cell>>,
 	pub length: u8

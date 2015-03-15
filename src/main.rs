@@ -1,6 +1,7 @@
 #![feature(old_io)]
 #![feature(collections)]
 #![feature(rand)]
+#[warn(deprecated)]
 
 mod grid;
 mod cell;

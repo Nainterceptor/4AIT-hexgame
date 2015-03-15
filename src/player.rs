@@ -87,6 +87,65 @@ impl Player {
 	pub fn add_played_cell(&mut self, cell: Cell) {
 		self.played_cells.push(cell);
 	}
+
+	pub fn get_best_move(&self, grid: &Grid) -> Option<[u8; 2]> {
+		let mut best_move: Option<[u8; 2]> = None;
+		let mut best_move_cost: Option<u8> = None;
+		let shuffled_positions: Vec<[u8; 2]> = grid.get_shuffled_free_cells();
+		for cell in shuffled_positions.iter() {
+			let mut grid_to_test = grid.clone();
+			grid_to_test.edit(&self.cell_code, *cell);
+			for i in 0..grid.length {
+				let coord: [u8; 2] = match self.cell_code {
+					CellStatus::White => [0, i],
+					CellStatus::Black => [i, 0],
+					_ => { panic!("Failed to match the color"); }
+				};
+				let to_ignore_init: Vec<[u8; 2]> = Vec::new();
+				let weight_to_goal = self.get_weight_to_goal(&grid_to_test, &coord, &to_ignore_init);
+				if weight_to_goal == None {
+					continue;
+				}
+				if best_move_cost == None || best_move_cost.unwrap() > weight_to_goal.unwrap() {
+					best_move_cost = weight_to_goal;
+					best_move = Some(*cell);
+				}
+			}
+		}
+		return best_move;
+	}
+
+
+	pub fn get_weight_to_goal(&self, grid: &Grid, cell: &[u8; 2], to_ignore: &Vec<[u8; 2]>) -> Option<u8> {
+		let cell_object = grid.get_cell(*cell);
+		if cell_object.is_a_goal(&self, grid) {
+			return Some(cell_object.get_weight(&self));
+		}
+		let mut to_ignore_cell = to_ignore.clone();
+		to_ignore_cell.push(*cell);
+		let available_cells_close = cell_object.get_close(grid, self.cell_code);
+		let mut shorter_path: Option<u8> = None;
+		let mut last_weight: Option<i8> = None;
+		let mut goal_reached: bool = false;
+		for cell in available_cells_close.iter() {
+			if cell.is_in_vector(&to_ignore_cell) {
+				continue;
+			}
+			let weight_to_goal = self.get_weight_to_goal(grid, &[cell.x, cell.y], &to_ignore_cell);
+			if weight_to_goal == None {
+				continue;
+			}
+			goal_reached = true;
+			if shorter_path == None || weight_to_goal.unwrap() < shorter_path.unwrap() {
+				shorter_path = weight_to_goal;
+			}
+			last_weight = Some(cell.weight);
+		}
+		if !goal_reached || shorter_path == None {
+			return None;
+		}
+		return Some(shorter_path.unwrap() + cell_object.get_weight(&self));
+	}
 }
 
 impl PlayerType {

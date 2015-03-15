@@ -32,18 +32,25 @@ impl Game {
 					self.grid.edit(&self.players[(self.turn % 2)  as usize].cell_code, random_choice);
 				},
 				PlayerType::PathAI => {
-					let coord: [u8; 2];
-					match self.get_current_player().get_next_PathAI_move(&self.grid) {
-						Some(x) => {
-							coord = x;
-						},
-						None => {
-							coord = self.grid.get_shuffled_free_cells()[0];
-						}
-					}
-					println!("{:?}", coord);
+					let coord: [u8; 2] = match self.get_current_player().get_next_PathAI_move(&self.grid) {
+						Some(x) => x,
+						None => self.grid.get_shuffled_free_cells()[0]
+					};
 					self.grid.edit(&self.players[(self.turn % 2)  as usize].cell_code, coord);
 					self.players[(self.turn % 2) as usize].add_played_cell(*self.grid.get_cell(coord));
+				},
+				PlayerType::MindPathAI => {
+					panic!("Player type not supported");
+				},
+				PlayerType::ButeforceAI => {
+					let coord: [u8; 2] = match self.get_current_player().get_best_move(&self.grid) {
+						Some(x) => x,
+						None => {
+							println!("Fallback Random");
+							self.grid.get_shuffled_free_cells()[0]
+						}
+					};
+					self.grid.edit(&self.players[(self.turn % 2)  as usize].cell_code, coord);
 				},
 				PlayerType::Human => {
 					let coord: [u8; 2] = self.grid.get_coord();
@@ -53,9 +60,6 @@ impl Game {
 						println!("This cell is not free");
 						continue; //prevent turn_increase
 					}
-				}
-				_ => {
-					panic!("Player type not supported");
 				}
 			};
 			self.turn_increase();

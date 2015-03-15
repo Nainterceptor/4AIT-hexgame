@@ -3,12 +3,14 @@ use player::Player;
 
 #[derive(PartialEq)]
 #[derive(Copy)]
+#[derive(Clone)]
 pub enum CellStatus {
 	Empty,
 	Black,
 	White
 }
 
+#[derive(Clone)]
 #[derive(Copy)]
 pub struct Cell {
 	pub status: CellStatus,
@@ -24,9 +26,9 @@ pub struct RelativePositionWeight {
 
 #[derive(Copy)]
 pub struct PositionWeight {
-	x: u8,
-	y: u8,
-	weight: i8
+	pub x: u8,
+	pub y: u8,
+	pub weight: i8
 }
 
 impl CellStatus {
@@ -70,6 +72,9 @@ impl Cell {
 			_ => false
 		}
 	}
+	pub fn get_weight(&self, player: &Player) -> u8 {
+		return if self.status == player.cell_code { 0 } else { 1 };
+	}
 
 //	hex sides useful representation
 //	[ _, _]  [ 0,-1]  [ 1,-1]
@@ -106,7 +111,7 @@ impl Cell {
 		return list;
 	}
 
-	fn get_close(&self, grid: &Grid, color: CellStatus) -> Vec<PositionWeight> {
+	pub fn get_close(&self, grid: &Grid, color: CellStatus) -> Vec<PositionWeight> {
 		let grid_length = grid.length as i16;
 		let mut list: Vec<PositionWeight> = Vec::with_capacity(6);
 		for relative_position in self.get_close_relative(color) {
@@ -182,6 +187,17 @@ impl Cell {
 		return [self.x, self.y];
 	}
 
+	pub fn is_in_vector(&self, positions: &Vec<[u8; 2]>) -> bool {
+		for pos in positions.iter() {
+			if [self.x, self.y] == *pos {
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
+impl PositionWeight {
 	pub fn is_in_vector(&self, positions: &Vec<[u8; 2]>) -> bool {
 		for pos in positions.iter() {
 			if [self.x, self.y] == *pos {
