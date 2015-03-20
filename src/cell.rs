@@ -1,17 +1,14 @@
 use grid::Grid;
 use player::Player;
 
-#[derive(PartialEq)]
-#[derive(Copy)]
-#[derive(Clone)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub enum CellStatus {
 	Empty,
 	Black,
 	White
 }
 
-#[derive(Clone)]
-#[derive(Copy)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Cell {
 	pub status: CellStatus,
 	pub x: u8,
@@ -161,10 +158,14 @@ impl Cell {
 		return sliced_shuffled_cells_close;
 	}
 
-	pub fn get_available_close_random_uniq_weight(&self, grid: &Grid) -> Vec<Cell> {
+	pub fn get_available_close_random_uniq_weight(&self, grid: &Grid, player_status: Option<CellStatus>) -> Vec<Cell> {
 		let mut list: Vec<Cell> = Vec::with_capacity(6);
 		let mut weight_list: Vec<i8> = Vec::with_capacity(3);
-		for cell_close in self.get_close_random(grid, self.status) {
+		let status: CellStatus = match player_status {
+			Some(x) => x,
+			None => self.status
+		};
+		for cell_close in self.get_close_random(grid, status) {
 			if i8_is_in_vector(cell_close.weight, &weight_list) {
 				continue;
 			}

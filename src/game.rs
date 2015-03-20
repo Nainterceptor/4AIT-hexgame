@@ -1,6 +1,7 @@
 use player::Player;
 use player::PlayerType;
 use grid::Grid;
+use cell::Cell;
 
 pub struct Game {
 	grid: Grid,
@@ -40,7 +41,13 @@ impl Game {
 					self.players[(self.turn % 2) as usize].add_played_cell(*self.grid.get_cell(coord));
 				},
 				PlayerType::MindPathAI => {
-					panic!("Player type not supported");
+					let cell: Cell = match self.players[(self.turn % 2) as usize].get_next_MindPathAI_move(&self.grid) {
+						Some(x) => x,
+						None => *self.grid.get_cell(self.grid.get_shuffled_free_cells()[0])
+					};
+					let coord: [u8; 2] = [cell.x, cell.y];
+					self.grid.edit(&self.players[(self.turn % 2)  as usize].cell_code, coord);
+					self.players[(self.turn % 2) as usize].add_played_cell(*self.grid.get_cell(coord));
 				},
 				PlayerType::ButeforceAI => {
 					let coord: [u8; 2] = match self.get_current_player().get_best_move(&self.grid) {
