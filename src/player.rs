@@ -120,7 +120,6 @@ impl Player {
 	}
 
 	pub fn recalc_path(&mut self, grid: &Grid) {
-		let mut i = 0;
 		let mut new_path: Vec<Cell> = Vec::new();
 		for cell in self.path_cells.iter() {
 			if cell.status != CellStatus::Empty && cell.status != self.cell_code {
@@ -226,18 +225,12 @@ impl Player {
 		to_ignore_cell.push(*cell);
 		let available_cells_close = cell_object.get_close(grid, self.cell_code);
 		let mut shorter_path: Vec<Cell> = Vec::new();
-		let mut last_weight: Option<i8> = None;
 		let mut has_shorter_path = false;
 		let mut goal_reached: bool = false;
 		for cell in available_cells_close.iter() {
 			if cell.is_in_vector(&to_ignore_cell) {
 				continue;
 			}
-//			if last_weight == None {
-//				last_weight = Some(cell.weight);
-//			} else if last_weight.unwrap > cell.weight  {
-//
-//			}
 			let path_to_goal: Vec<Cell> = match self.get_path_to_goal(grid, &[cell.x, cell.y], &to_ignore_cell) {
 				Some(x) => x,
 				None => { continue; }
@@ -268,7 +261,6 @@ impl Player {
 		to_ignore_cell.push(*cell);
 		let available_cells_close = cell_object.get_close(grid, self.cell_code);
 		let mut shorter_path: Option<u8> = None;
-		let mut last_weight: Option<i8> = None;
 		let mut goal_reached: bool = false;
 		for cell in available_cells_close.iter() {
 			if cell.is_in_vector(&to_ignore_cell) {
@@ -282,7 +274,6 @@ impl Player {
 			if shorter_path == None || weight_to_goal.unwrap() < shorter_path.unwrap() {
 				shorter_path = weight_to_goal;
 			}
-			last_weight = Some(cell.weight);
 		}
 		if !goal_reached || shorter_path == None {
 			return None;
