@@ -2,6 +2,7 @@ use player::Player;
 use player::PlayerType;
 use grid::Grid;
 use cell::Cell;
+use cell::CellStatus;
 
 pub struct Game {
 	grid: Grid,
@@ -19,6 +20,15 @@ impl Game {
 			turn: 0
 		};
 	}
+
+	pub fn new_for_bench(length: u8, player_type: PlayerType) -> Game {
+		return Game {
+			grid: Grid::new(length),
+			players: [Player::new_for_bench(1, length, player_type), Player::new_for_bench(2, length, player_type)],
+			turn: 0
+		};
+	}
+
 	pub fn play(&mut self) {
 		//u16 cover u8*u8
 		loop {

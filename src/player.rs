@@ -12,6 +12,7 @@ pub struct Player {
 	pub path_cells: Vec<Cell>
 }
 
+#[derive(Copy)]
 pub enum PlayerType {
 	RandomAI,
 	PathAI,
@@ -29,7 +30,7 @@ impl Player {
 			_ => {
 				(grid_length*grid_length) as u16
 			}
-		};grid_length as u16 * grid_length as u16;
+		};
 		println!("Please, give us a name for player {}", num);
 
 		let mut stdin = old_io::stdin();
@@ -52,6 +53,25 @@ impl Player {
 
 		return Player {
 			name: (*name).to_string(),
+			cell_code: CellStatus::get_color_for_player(num),
+			player_type: player_type,
+			played_cells: Vec::with_capacity(possibilities as usize),
+			path_cells: Vec::new()
+		};
+	}
+
+	pub fn new_for_bench(num: u8, grid_length: u8, player_type: PlayerType) -> Player {
+		let possibilities: u16 = match num {
+			1 if grid_length % 2 != 0 => {
+				(grid_length*grid_length + 1) as u16
+			},
+			_ => {
+				(grid_length*grid_length) as u16
+			}
+		};
+
+		return Player {
+			name: format!("Player{}", num),
 			cell_code: CellStatus::get_color_for_player(num),
 			player_type: player_type,
 			played_cells: Vec::with_capacity(possibilities as usize),
