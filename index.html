@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="fr">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>reveal.js - The HTML Presentation Framework</title>
+
+		<meta name="description" content="Présentation d'une étude à propos du jeu de hex">
+		<meta name="author" content="Gaël Demette, Robin Lebert, Alexandre Vaast, Arnaud Pierre Boyer">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="revealjs/css/reveal.css">
+		<link rel="stylesheet" href="revealjs/css/theme/black.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="revealjs/lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'revealjs/css/print/pdf.css' : 'revealjs/css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="revealjs/lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Hex game</h1>
+					<h2><small>Pistes de reflexion autour d'une résolution automatisée</small></h2>
+					<p><small>Implémentation Rust et Javascript</small></p>
+				</section>
+
+                <section>
+                    <section>
+                        <h1>Introduction</h1>
+                        <img src="./img/plateau.png" alt="Plateau de jeu"/>
+                    </section>
+                    <section>
+                        <h2>Comment apporter une solution ?</h2>
+                        <ul>
+                            <li class="fragment">Etudier le jeu</li>
+                            <li class="fragment">Jouer</li>
+                            <li class="fragment">Etudier sa réflexion</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h2>Objectifs</h2>
+                        <ul>
+                            <li>Une implémentation</li>
+                            <li>Deux systèmes de résolution (IA)</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h2>Quatre systèmes de résolution</h2>
+                        <ol>
+                            <li class="fragment">Random IA</li>
+                            <li class="fragment">Path IA</li>
+                            <li class="fragment">Mind Path IA</li>
+                            <li class="fragment">Bruteforce IA</li>
+                        </ol>
+                    </section>
+                    <section>
+                        <h2>Deux implémentations</h2>
+                        <ol>
+                            <li class="fragment">Rust (CLI + Benchmarking embeded)</li>
+                            <li class="fragment">Javascript (Web interface)</li>
+                        </ol>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h1>Nos systèmes de résolution</h1>
+                    </section>
+                    <section>
+                        <h2>Random IA</h2>
+                        <p class="fragment">Dans le jeu de hex, il y a forcement un gagnant.</p>
+                        <p class="fragment">Constat issue de l'étude du jeu.</p>
+                        <table  class="fragment">
+                            <thead>
+                            <tr>
+                                <th>Plus</th>
+                                <th>Moins</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td class="fragment">Rapidité</td>
+                                <td class="fragment">Contre intuitivité</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td class="fragment">Peu de chances de victoire</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    <section>
+                        <h3 class="fragment">Exemple</h3>
+                        <pre class="fragment">
+ B  B  B  B  W  W  W  W  B  W  W
+   W  B  W  B  W  W  W  W  B  B  W
+     W  B  W  W  B  B  B  W  W  W  W
+       W  B  W  W  W  W  W  B  B  B  W
+         B  B  W  B  W  B  B  B  W  W  W
+           B  B  B  W  B  W  B  W  B  B  W
+             B  W  W  W  B  W  B  B  W  B  B
+               B  W  B  B  W  <span style="color: darkgreen">W  W  W</span>  B  B  W
+                 B  B  B  W  <span style="color: darkgreen">W</span>  B  B  <span style="color: darkgreen">W  W  W  W</span>
+                   B  B  B  <span style="color: darkgreen">W</span>  B  W  B  B  B  B  B
+                     <span style="color: darkgreen">W  W  W</span>  -  B  W  B  B  B  B  W
+                        </pre>
+                        <h3 class="fragment">Benchmark</h3>
+                        <p class="fragment">27 943 525 nano secondes pour la résolution d'une grille 11x11 entre deux IA</p>
+                    </section>
+                    <section>
+                        <h2>Path IA</h2>
+                        <p class="fragment">Raisonnement simple et sans anticipation.</p>
+                        <p class="fragment">On prend une case au hazard et on avance de 1 en 1</p>
+                        <table  class="fragment">
+                            <thead>
+                            <tr>
+                                <th>Plus</th>
+                                <th>Moins</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td class="fragment">Très rapide</td>
+                                <td class="fragment">Facilement déjouable</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    <section>
+                        <h3 class="fragment">Exemple</h3>
+                        <pre class="fragment">
+ -  -  B  -  -  -  -  -  -  -  -
+   -  -  B  -  -  -  -  -  -  -  -
+     -  -  B  -  -  B  -  -  -  -  -
+       -  -  B  -  B  -  -  -  -  -  -
+         -  B  -  B  B  -  -  -  -  -  W
+           B  -  -  -  W  W  W  W  W  W  -
+             B  W  W  W  -  -  -  -  -  -  -
+               W  -  -  -  -  -  -  -  -  -  -
+                 -  -  -  -  -  -  -  -  -  -  -
+                   -  -  -  -  -  -  -  -  -  -  -
+                     -  -  -  -  -  -  -  -  -  -  -
+                        </pre>
+                        <h3 class="fragment">Benchmark</h3>
+                        <p class="fragment">5 899 152 nano secondes pour la résolution d'une grille 11x11 entre deux IA</p>
+                    </section>
+                    <section>
+                        <h2>Mind path IA</h2>
+                        <p class="fragment">Raisonnement simple avec anticipation.</p>
+                        <p class="fragment">On trace un chemin dont l'objectif est de le remplir. Dès qu'il est franchi, on le recalcul en prenant en compte les pions déjà joués.</p>
+                        <table  class="fragment">
+                            <thead>
+                            <tr>
+                                <th>Plus</th>
+                                <th>Moins</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td class="fragment">Rapide</td>
+                                <td class="fragment">Attends le franchissement pour recalculer</td>
+                            </tr>
+                            <tr>
+                                <td class="fragment">Pertinent</td>
+                                <td class="fragment">Prévisible</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    <section>
+                        <h3 class="fragment">Exemple</h3>
+                        <pre class="fragment">
+ -  -  -  -  -  -  B  -  -  -  -
+   -  -  -  -  -  B  -  -  -  -  -
+     -  -  -  -  -  B  -  -  -  -  -
+       -  -  -  -  B  -  -  -  -  -  -
+         -  -  -  -  B  B  B  B  B  B  B
+           -  -  -  -  W  W  W  W  W  W  W
+             -  W  W  W  -  -  -  -  -  -  -
+               W  -  -  -  -  -  -  -  -  -  -
+                 -  -  -  -  -  -  -  -  -  -  -
+                   -  -  -  -  -  -  -  -  -  -  -
+                     -  -  -  -  -  -  -  -  -  -  -
+                        </pre>
+                        <h3 class="fragment">Benchmark</h3>
+                        <p class="fragment">9 733 885 nano secondes pour la résolution d'une grille 11x11 entre deux IA</p>
+                    </section>
+                    <section>
+                        <h2>Bruteforce IA</h2>
+                        <p class="fragment">Raisonnement complexe et sans anticipation.</p>
+                        <p class="fragment">On test chaque possibilité pour convenir du choix le plus pertinent</p>
+                        <table  class="fragment">
+                            <thead>
+                            <tr>
+                                <th>Plus</th>
+                                <th>Moins</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td class="fragment">Difficile à battre</td>
+                                <td class="fragment">Très lent</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td></td>
+                                <td>Très lent</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td></td>
+                                <td>Très lent</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td></td>
+                                <td>Très lent</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td></td>
+                                <td>Très lent</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    <section>
+                        <h3 class="fragment">Exemple</h3>
+                        <pre class="fragment">
+ B  B  W  W
+   B  -  -  W
+     B  B  W  W
+       B  W  B  -
+                        </pre>
+                        <h3 class="fragment">Benchmark</h3>
+                        <p class="fragment">524 053 195 nano secondes pour la résolution d'une grille 4x4 entre deux IA</p>
+                    </section>
+                    <section>
+                        <h2>Retrions...</h2>
+                        <h3>Par rapidité</h3>
+                        <ol>
+                            <li class="fragment">Path IA (5 899 152 ns)</li>
+                            <li class="fragment">Mind Path IA (9 733 885 ns)</li>
+                            <li class="fragment">Random IA (27 943 525 ns)</li>
+                            <li class="fragment">Bruteforce IA(+524 053 195 ns)</li>
+                        </ol>
+                        <h3>Par pertinence</h3>
+                        <ol>
+                            <li class="fragment">Bruteforce IA</li>
+                            <li class="fragment">Mind Path IA</li>
+                            <li class="fragment">Path IA</li>
+                            <li class="fragment">Random IA</li>
+                        </ol>
+                    </section>
+                </section>
+                <section>
+                    <h1>Démonstration</h1>
+                </section>
+				<section>
+					<h1>Merci</h1>
+                    <ul>
+                        <li>Alexandre Vaast (170768)</li>
+                        <li>Robin Lebert (202429)</li>
+                        <li>Arnaud Pierre Boyer (148282)</li>
+                        <li>Gaël Demette (169174)</li>
+                    </ul>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="revealjs/lib/js/head.min.js"></script>
+		<script src="revealjs/js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+
+				// Optional reveal.js plugins
+				dependencies: [
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
